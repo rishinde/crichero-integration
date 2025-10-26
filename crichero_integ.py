@@ -1,4 +1,5 @@
 import cloudscraper
+import st
 
 url = "https://cricheroes.com/team-profile/4575270/revanta-risers-ravet-(rrr)/leaderboard"
 scraper = cloudscraper.create_scraper()
