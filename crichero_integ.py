@@ -1,17 +1,15 @@
-# crichero_integ.py
 import streamlit as st
-from cricheroes import Team
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-import os
+from cricheroes import Team
 
 st.set_page_config(page_title="CricHeroes Team Viewer", page_icon="🏏", layout="centered")
 st.title("🏏 CricHeroes Team Viewer 🏏")
 
 # -----------------------------
-# Set paths for Streamlit Cloud
+# Configure Chrome for Streamlit Cloud
 # -----------------------------
 CHROME_BIN = "/usr/bin/chromium"
 CHROMEDRIVER_PATH = "/usr/bin/chromedriver"
@@ -32,17 +30,24 @@ team_url = st.text_input("Enter CricHeroes Team URL (e.g., 2580003/CP-Sm@shers):
 
 if st.button("Load Team Players") and team_url:
     try:
-        # Initialize Team object
-        team = Team(url=team_url, driver_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+        # Create Selenium driver manually
+        driver = webdriver.Chrome(service=service, options=chrome_options)
 
+        # Pass driver session into Team
+        team = Team(url=team_url, driver=driver)
+
+        # --- Get players ---
         players = team.get_players()
-        st.success(f"✅ Loaded {len(players)} players")
+        if not players:
+            st.warning("⚠️ No players found — check team URL or CricHeroes availability.")
+        else:
+            st.success(f"✅ Loaded {len(players)} players")
+            df = pd.DataFrame([{"Player Name": p.name} for p in players])
+            df.index += 1
+            df.index.name = "S.No"
+            st.dataframe(df)
 
-        df = pd.DataFrame([{"Player Name": p.name} for p in players])
-        df.index += 1
-        df.index.name = "S.No"
-        st.dataframe(df)
-
+        # --- Get matches (optional) ---
         matches = team.get_matches()
         if matches:
             st.subheader("Recent Matches")
@@ -50,6 +55,8 @@ if st.button("Load Team Players") and team_url:
             df_matches.index += 1
             df_matches.index.name = "S.No"
             st.dataframe(df_matches)
+
+        driver.quit()
 
     except Exception as e:
         st.error(f"❌ Failed to load team: {e}")
