@@ -1,5 +1,4 @@
 streamlit
-cricheroes
-selenium
-chromedriver-autoinstaller
+requests
+beautifulsoup4
 pandas
